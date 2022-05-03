@@ -1,0 +1,17 @@
+Item,Category,Quantity,Price/ Piece
+Milk,Essential,6,4.72
+Bread,Essential,8,2.98
+Oil,Essential,2,8.5
+Cotton,Essential,4,11.2
+Apples,Essential,8,1
+Chocolates,Luxury,12,3
+Honey,Luxury,4,4.2
+Cereal,Luxury,6,6.34
+Soap,Luxury,5,5
+Detergent,Luxury,8,3
+Paint,Luxury,5,7
+Pillow,Misc,10,6.76
+Sheets,Misc,13,11.43
+Blanket,Misc,12,45.5
+Television,Misc,5,1100.54
+Map,Misc,2,2.92

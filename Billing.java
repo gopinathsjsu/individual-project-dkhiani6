@@ -10,34 +10,36 @@ import java.util.Map;
 class Inventory {
 
     String line = "";
-    String splitBy = ",";
 
-    HashMap<String, HashMap<String, HashMap<String, Float>>> makeInventory()
+    HashMap<String, HashMap<String, HashMap<String, Float>>> createInventory()
     {
         HashMap<String, HashMap<String, HashMap<String, Float>>> inventory = new HashMap<>();
 
         try {
             //parsing a CSV file into BufferedReader class constructor
-            BufferedReader br = new BufferedReader(new FileReader("./input_data/Dataset - Sheet1.csv"));
+            BufferedReader br = new BufferedReader(new FileReader("./input_data/Dataset.csv"));
             while ((line = br.readLine()) != null)   //returns a Boolean value
             {
-                String[] item = line.split(splitBy);    // use comma as separator
+                String[] row = line.split(",");    // use comma as separator
 
-                if (item[0].equals("Essential") || item[0].equals("Luxury") || item[0].equals("Misc"))
+                if (row[1].equals("Essential") || row[1].equals("Luxury") || row[1].equals("Misc"))
                 {
-                    HashMap<String, Float> quantityPrice = new HashMap<String, Float>() {{
-                        put("quantity", Float.parseFloat(item[2]));
-                        put("price", Float.parseFloat(item[3]));
+                    HashMap<String, Float> qtyPrice = new HashMap<String, Float>() {{
+                        put("quantity", Float.parseFloat(row[2]));
+                        put("price", Float.parseFloat(row[3]));
                     }};
                     HashMap<String, HashMap<String, Float>> itemType = new HashMap<>();
-                    itemType.put(item[1], quantityPrice);
+                    itemType.put(row[0], qtyPrice);
 
-                    if (inventory.containsKey(item[0])) {
+                    if (inventory.containsKey(row[1])) 
+                    {
                         HashMap<String, HashMap<String, Float>> temp;
-                        temp = inventory.get(item[0]);
-                        temp.put(item[1], quantityPrice);
-                    } else {
-                        inventory.put(item[0], itemType);
+                        temp = inventory.get(row[1]);
+                        temp.put(row[0], qtyPrice);
+                    } 
+                    else 
+                    {
+                        inventory.put(row[1], itemType);
                     }
                 }
             }
@@ -45,6 +47,7 @@ class Inventory {
         catch (IOException e) {
             e.printStackTrace();
         }
+        //System.out.println(inventory);
         return inventory;
   }
 }
@@ -52,7 +55,6 @@ class Inventory {
 class Orders {
 
     public String line = "";
-    public String splitBy = ",";
     public  HashMap<String, Integer>  orders = new HashMap<>();
 
     HashMap<String, Integer> createOrder()
@@ -63,10 +65,10 @@ class Orders {
         cardInfo = readCard.createCardDB();
 
         try {
-            BufferedReader br = new BufferedReader(new FileReader("./input_data/Input3 - Sheet1.csv"));
+            BufferedReader br = new BufferedReader(new FileReader("./input_data/Input3.csv"));
             while ((line = br.readLine()) != null)   //returns a Boolean value
             {
-                String[] item = line.split(splitBy);    // use comma as separator
+                String[] item = line.split(",");    // use comma as separator
 
                 if ((item[0].equals("Item")) == false) {
                     orders.put(item[0], Integer.parseInt(item[1]));
@@ -75,7 +77,7 @@ class Orders {
                     if (!cardInfo.contains(item[2])) {
                         try {
                             cardInfo.add(item[2]);
-                            FileWriter fw = new FileWriter("./input_data/Cards - Sheet1.csv", true);
+                            FileWriter fw = new FileWriter("./input_data/Cards.csv", true);
                             fw.write(item[2] + "\n");
                             fw.close();
                         } catch (IOException e) {
@@ -123,13 +125,13 @@ class ValidateCart {
         orders = ordersMap.createOrder();
 
         // Creating Hashmap for limiting the category items
-        HashMap<String, Integer> maxCapacity = new HashMap<>();
-        maxCapacity.put("Essential",3);
-        maxCapacity.put("Luxury",5);
-        maxCapacity.put("Misc",6);
+        HashMap<String, Integer> maxOrder = new HashMap<>();
+        maxOrder.put("Essential",3);
+        maxOrder.put("Luxury",4);
+        maxOrder.put("Misc",6);
 
         HashMap<String, Integer> orderCap = new HashMap<>();
-        HashMap<String,Float> total = new HashMap<>();
+        // HashMap<String,Float> total = new HashMap<>();
 
         for (Map.Entry<String, Integer> orderList : orders.entrySet())
         {
@@ -142,11 +144,11 @@ class ValidateCart {
                     if (inventoryItems.getValue().containsKey(orderItemKey))
                     {
                         // Condition to check if quantity is not greater than stock and also to check the cap per category
-                        if ((inventoryItems.getValue().get(orderItemKey).get("quantity") )>= (float)orderList.getValue() &&  orderList.getValue() <= maxCapacity.get(inventoryItems.getKey()))
+                        if ((inventoryItems.getValue().get(orderItemKey).get("quantity") )>= (float)orderList.getValue() &&  orderList.getValue() <= maxOrder.get(inventoryItems.getKey()))
                         {
                             if (orderCap.containsKey(inventoryItemKey))
                             {
-                                if  (orderCap.get(inventoryItemKey) <= maxCapacity.get(inventoryItemKey))
+                                if  (orderCap.get(inventoryItemKey) <= maxOrder.get(inventoryItemKey))
                                 {
                                     orderCap.put(inventoryItemKey,orderCap.get(inventoryItemKey)+1);
 
@@ -186,16 +188,15 @@ class ValidateCart {
 class ReadCard {
     HashSet<String> cardInfo = new HashSet<>();
     String line = "";
-    String splitBy = ",";
 
     HashSet<String> createCardDB(){
 
         try {
 
-            BufferedReader br = new BufferedReader(new FileReader("./input_data/Cards - Sheet1.csv"));
+            BufferedReader br = new BufferedReader(new FileReader("./input_data/Cards.csv"));
             while ((line = br.readLine()) != null)   //returns a Boolean value
             {
-                String[] item = line.split(splitBy);    // use comma as separator
+                String[] item = line.split(",");    // use comma as separator
 
                 if ((item[0].equals("CardNumber"))==false){
                     cardInfo.add(item[0]);
@@ -208,9 +209,9 @@ class ReadCard {
     }
 }
 
-class CartProcessing {
+class EvaluateCart {
 
-    void processCart(HashMap<String,Integer> invalidItems, ArrayList<Product> prod)
+    void evaluate(HashMap<String,Integer> invalidItems, ArrayList<Product> prod)
     {
 
         if (invalidItems.size() != 0){
@@ -257,14 +258,14 @@ public class Billing {
         // Creating Inventory
         HashMap<String, HashMap<String, HashMap<String, Float>>> inventory = new HashMap<>();
         Inventory invt = new Inventory();
-        inventory = invt.makeInventory();
+        inventory = invt.createInventory();
 
         // Validating the cart items
         ValidateCart vc = new ValidateCart();
         vc.validateCartItems(inventory);
 
-        CartProcessing cart = new CartProcessing();
-        cart.processCart(vc.invalidItems, vc.prod);
+        EvaluateCart cart = new EvaluateCart();
+        cart.evaluate(vc.invalidItems, vc.prod);
 
         }
     }
