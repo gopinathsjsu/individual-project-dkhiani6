@@ -16,11 +16,11 @@ class Inventory {
         HashMap<String, HashMap<String, HashMap<String, Float>>> inventory = new HashMap<>();
 
         try {
-            //parsing a CSV file into BufferedReader class constructor
             BufferedReader br = new BufferedReader(new FileReader("./input_data/Dataset.csv"));
-            while ((line = br.readLine()) != null)   //returns a Boolean value
+
+            while ((line = br.readLine()) != null)   //while EOF is reached parse the csv file line by line
             {
-                String[] row = line.split(",");    // use comma as separator
+                String[] row = line.split(",");    // using comma as separator as csv file is considered 
 
                 if (row[1].equals("Essential") || row[1].equals("Luxury") || row[1].equals("Misc"))
                 {
@@ -47,7 +47,7 @@ class Inventory {
         catch (IOException e) {
             e.printStackTrace();
         }
-        //System.out.println(inventory);
+        System.out.println(inventory);
         return inventory;
   }
 }
@@ -59,20 +59,19 @@ class Orders {
 
     HashMap<String, Integer> createOrder()
     {
-        // Reading all the card numbers from csv file
+        // generating cards DB
         HashSet<String> cardInfo = new HashSet<>();
-        ReadCard readCard = new ReadCard();
-        cardInfo = readCard.createCardDB();
+        checkCard checkCard = new checkCard();
+        cardInfo = checkCard.createCardDB();
 
         try {
-            BufferedReader br = new BufferedReader(new FileReader("./input_data/Input3.csv"));
+            BufferedReader br = new BufferedReader(new FileReader("./input_data/Input.csv"));
             while ((line = br.readLine()) != null)   //returns a Boolean value
             {
                 String[] item = line.split(",");    // use comma as separator
 
                 if ((item[0].equals("Item")) == false) {
                     orders.put(item[0], Integer.parseInt(item[1]));
-
 
                     if (!cardInfo.contains(item[2])) {
                         try {
@@ -91,32 +90,27 @@ class Orders {
         {
             e.printStackTrace();
         }
+        System.out.println(orders);
         return  orders;
     }
 }
 
-class Product {
+class Item {
 
-    String description;
+    String Name;
     Float price;
+    int quantity; 
 
-    Product(String description)
+    Item(String Name)
     {
-        this.description = description;
-    }
-
-    Float getPrice()
-    {
-        return  price;
+        this.Name = Name;
     }
 }
 
 class ValidateCart {
 
-    public ArrayList<Product> prod = new ArrayList<>();
-
-    // Creating Hashmap for all invalid items
-    public HashMap<String,Integer> invalidItems = new HashMap<>();
+    public ArrayList<Item> item = new ArrayList<>();
+    public HashMap<String,Integer> errItems = new HashMap<>();
 
     void validateCartItems(HashMap<String, HashMap<String, HashMap<String, Float>>> inventory )
     {
@@ -124,7 +118,7 @@ class ValidateCart {
         Orders ordersMap = new Orders();
         orders = ordersMap.createOrder();
 
-        // Creating Hashmap for limiting the category items
+        // limiting the items that can b ordered from a particular category
         HashMap<String, Integer> maxOrder = new HashMap<>();
         maxOrder.put("Essential",3);
         maxOrder.put("Luxury",4);
@@ -153,40 +147,44 @@ class ValidateCart {
                                     orderCap.put(inventoryItemKey,orderCap.get(inventoryItemKey)+1);
 
                                     //Following Composite Design Pattern
-                                    Product p = new Product(orderItemKey);
+                                    Item p = new Item(orderItemKey);
                                     p.price = (orderList.getValue())*inventoryItems.getValue().get(orderItemKey).get("price");
-                                    prod.add(p);
+                                    System.out.println(p.price);
+                                    p.quantity = orders.get(orderItemKey);
+                                    System.out.println(p.quantity);
+                                    item.add(p);
                                 }
                                 else
                                 {
-                                    invalidItems.put(orderItemKey, orderList.getValue());
+                                    errItems.put(orderItemKey, orderList.getValue());
                                 }
                             }
                             else
                             {
                                 orderCap.put(inventoryItemKey,1);
-                                Product p = new Product(orderItemKey);
+                                Item p = new Item(orderItemKey);
                                 p.price = (orderList.getValue())*inventoryItems.getValue().get(orderItemKey).get("price");
-                                prod.add(p);
+                                p.quantity = orders.get(orderItemKey);
+                                item.add(p);
                             }
                         }
                         else
                         {
-                            invalidItems.put(orderItemKey, orderList.getValue());
+                            errItems.put(orderItemKey, orderList.getValue());
                         }
                     }
                 }
             }
             else
             {
-                invalidItems.put(orderItemKey, orderList.getValue());
+                errItems.put(orderItemKey, orderList.getValue());
             }
         }
     }
 }
 
-class ReadCard {
-    HashSet<String> cardInfo = new HashSet<>();
+class checkCard {
+    HashSet<String> cards = new HashSet<>();
     String line = "";
 
     HashSet<String> createCardDB(){
@@ -194,36 +192,35 @@ class ReadCard {
         try {
 
             BufferedReader br = new BufferedReader(new FileReader("./input_data/Cards.csv"));
-            while ((line = br.readLine()) != null)   //returns a Boolean value
+            while ((line = br.readLine()) != null)   
             {
-                String[] item = line.split(",");    // use comma as separator
+                String[] item = line.split(",");    
 
                 if ((item[0].equals("CardNumber"))==false){
-                    cardInfo.add(item[0]);
+                    cards.add(item[0]);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return cardInfo;
+        return cards;
     }
 }
 
 class EvaluateCart {
 
-    void evaluate(HashMap<String,Integer> invalidItems, ArrayList<Product> prod)
+    void evaluate(HashMap<String,Integer> errItems, ArrayList<Item> item)
     {
-
-        if (invalidItems.size() != 0){
+        if (errItems.size() != 0){
             //generate text file function
 
             try {
-                FileWriter myWriter = new FileWriter("./Output/Invalid-items.txt");
-                myWriter.write("Please correct quantities. \n");
-                for (Map.Entry<String, Integer> entry : invalidItems.entrySet()) {
-                    myWriter.write(entry.getKey() + " : " + entry.getValue() + "\n");
+                FileWriter FW = new FileWriter("./Output/InvalidOrder.txt");
+                FW.write("Please correct quantities for \n");
+                for (Map.Entry<String, Integer> entry : errItems.entrySet()) {
+                    FW.write(entry.getKey() + " : " + entry.getValue() + "\n");
                 }
-                myWriter.close();
+                FW.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -231,14 +228,14 @@ class EvaluateCart {
         else
         {
             Float sum = 0.0f;
-            try (FileWriter fout = new FileWriter("./Output/Output.csv"))
+            try (FileWriter FW = new FileWriter("./Output/Output.csv"))
             {
-                for (Product p : prod) {
-                    fout.write(p.description + "," + p.price + "\n");
+                for (Item p : item) {
+                    FW.write(p.Name + "," + p.quantity + "," + p.price + "\n");
                     sum += p.price;
                 }
-                fout.write("Total" + ","+ sum);
-                fout.close();
+                FW.write("Total Price" + ","+ "," + sum);
+                FW.close();
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -249,23 +246,18 @@ class EvaluateCart {
 }
 
 
-
-
-
-
 public class Billing {
     public static void main(String[] args) {
-        // Creating Inventory
+       
         HashMap<String, HashMap<String, HashMap<String, Float>>> inventory = new HashMap<>();
         Inventory invt = new Inventory();
         inventory = invt.createInventory();
 
-        // Validating the cart items
         ValidateCart vc = new ValidateCart();
         vc.validateCartItems(inventory);
 
         EvaluateCart cart = new EvaluateCart();
-        cart.evaluate(vc.invalidItems, vc.prod);
+        cart.evaluate(vc.errItems, vc.item);
 
         }
     }
