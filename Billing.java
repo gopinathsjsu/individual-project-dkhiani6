@@ -52,10 +52,10 @@ class Inventory {
   }
 }
 
-class Orders {
+class Order {
 
     public String line = "";
-    public  HashMap<String, Integer>  orders = new HashMap<>();
+    public  HashMap<String, Integer>  order = new HashMap<>();
 
     HashMap<String, Integer> createOrder()
     {
@@ -71,7 +71,7 @@ class Orders {
                 String[] item = line.split(",");    // use comma as separator
 
                 if ((item[0].equals("Item")) == false) {
-                    orders.put(item[0], Integer.parseInt(item[1]));
+                    order.put(item[0], Integer.parseInt(item[1]));
 
                     if (!cardInfo.contains(item[2])) {
                         try {
@@ -90,8 +90,8 @@ class Orders {
         {
             e.printStackTrace();
         }
-        System.out.println(orders);
-        return  orders;
+        System.out.println(order);
+        return order;
     }
 }
 
@@ -114,9 +114,9 @@ class ValidateCart {
 
     void validateCartItems(HashMap<String, HashMap<String, HashMap<String, Float>>> inventory )
     {
-        HashMap<String, Integer> orders = new HashMap<>();
-        Orders ordersMap = new Orders();
-        orders = ordersMap.createOrder();
+        HashMap<String, Integer> order = new HashMap<>();
+        Order OrderMap = new Order();
+        order = OrderMap.createOrder();
 
         // limiting the items that can b ordered from a particular category
         HashMap<String, Integer> maxOrder = new HashMap<>();
@@ -127,7 +127,7 @@ class ValidateCart {
         HashMap<String, Integer> orderCap = new HashMap<>();
         // HashMap<String,Float> total = new HashMap<>();
 
-        for (Map.Entry<String, Integer> orderList : orders.entrySet())
+        for (Map.Entry<String, Integer> orderList : order.entrySet())
         {
             String orderItemKey = new String(orderList.getKey());
             if ((inventory.get("Essential")).containsKey(orderItemKey) || (inventory.get("Misc")).containsKey(orderItemKey) || (inventory.get("Luxury")).containsKey(orderItemKey))
@@ -150,7 +150,7 @@ class ValidateCart {
                                     Item p = new Item(orderItemKey);
                                     p.price = (orderList.getValue())*inventoryItems.getValue().get(orderItemKey).get("price");
                                     System.out.println(p.price);
-                                    p.quantity = orders.get(orderItemKey);
+                                    p.quantity = order.get(orderItemKey);
                                     System.out.println(p.quantity);
                                     item.add(p);
                                 }
@@ -164,7 +164,7 @@ class ValidateCart {
                                 orderCap.put(inventoryItemKey,1);
                                 Item p = new Item(orderItemKey);
                                 p.price = (orderList.getValue())*inventoryItems.getValue().get(orderItemKey).get("price");
-                                p.quantity = orders.get(orderItemKey);
+                                p.quantity = order.get(orderItemKey);
                                 item.add(p);
                             }
                         }
@@ -209,7 +209,7 @@ class checkCard {
 
 class EvaluateCart {
 
-    void evaluate(HashMap<String,Integer> errItems, ArrayList<Item> item)
+    void evaluate(HashMap<String,Integer> errItems, ArrayList<Item> items)
     {
         if (errItems.size() != 0){
             //generate text file function
@@ -230,7 +230,7 @@ class EvaluateCart {
             Float sum = 0.0f;
             try (FileWriter FW = new FileWriter("./Output/Output.csv"))
             {
-                for (Item p : item) {
+                for (Item p : items) {
                     FW.write(p.Name + "," + p.quantity + "," + p.price + "\n");
                     sum += p.price;
                 }
